@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.template import loader
 from hello.models import Db
+from hello.models import Rubric
 # Create your views here.
 
 def index(request):
@@ -10,10 +12,17 @@ def info(request):
     return HttpResponse('<font size=8 color=blue><h3>Information</h3></br>This site made with Django.</font>')
 
 def catalog(request):
-    html = '<font color=gray><h3>Catalog</h3></font>'
-    html += '<table><tr><td>Name</td><td>Description</td><td>Price</td></tr>'
-    for b in  Db.objects.order_by('-price'):
-    #for b in Db.objects.all():
-        html += f"<tr><td>{b.title}</td><td>{b.content}</td><td>{b.price}</td></tr>"
-    html += '</table>'
-    return HttpResponse(html)
+    current_rub = Rubric.objects.all()[0]
+    bbs = Db.objects.filter(rubric=current_rub.pk)
+    template = loader.get_template("index.html")
+    all_rub = Rubric.objects.all()
+    context = {'cdb' : bbs, 'rub' : current_rub, 'rubs' : all_rub}
+    return HttpResponse(template.render(context, request))
+
+def by_rubric(request, rubric_id):
+    bbs = Db.objects.filter(rubric=rubric_id)
+    template = loader.get_template("index.html")
+    current_rub = Rubric.objects.get(pk=rubric_id)
+    all_rub = Rubric.objects.all()
+    context = {'cdb' : bbs, 'rub' : current_rub, 'rubs' : all_rub}
+    return HttpResponse(template.render(context, request))
